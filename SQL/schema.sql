@@ -15,7 +15,7 @@ CREATE TABLE users (
 CREATE TABLE messages (
   id INT NOT NULL AUTO_INCREMENT primary key,
   content varchar(140),
-  created timestamp default '0000-00-00 00:00:00',
+  created timestamp default now(),
   updated timestamp default now() on update now(),
   user_id INT NOT NULL,
   room_id INT NOT NULL,
@@ -30,6 +30,8 @@ CREATE TABLE friends (
   FOREIGN KEY (user_id1) REFERENCES users(id),
   FOREIGN KEY (user_id2) REFERENCES users(id)
 );
+
+
 /* You can also create more tables, if you need them... */
 
 /*  Execute this file from the command line by typing:
