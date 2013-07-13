@@ -8,41 +8,62 @@ var dbConnection = mysql.createConnection({
   // host: "127.0.0.1"
 });
 
-exports.getRoomID = function(roomName, callback){
-  dbConnection.connect();
+var getRoomID = function(roomName, callback){
   dbConnection.query('SELECT id FROM rooms WHERE name = "' + roomName + '";', function(err, rows, fields){
-    callback(rows[0].id);
+    if ( rows[0] ) { // it exists run callback
+      callback(rows[0].id);
+    } else { // create it and pass the callback through
+      createNewRoom(roomName, callback);
+    }
   });
-  dbConnection.end();
+};
+
+var createNewRoom = function(roomName, callback){
+  dbConnection.query('INSERT INTO rooms (name) VALUES ("'+ roomName +'");', function(err, rows, fields){
+    getRoomID(roomName, callback);
+  });
+};
+
+var getUserID = function(userName, callback){
+  dbConnection.query('SELECT id FROM users WHERE username = "' + userName + '";', function(err, rows, fields){
+    if ( rows[0] ) { // it exists run callback
+      callback(rows[0].id);
+    } else { // create it and pass the callback through
+      createNewUser(userName, callback);
+    }
+  });
+};
+
+var createNewUser = function(userName, callback){
+  dbConnection.query('INSERT INTO users (username) VALUES ("'+ userName +'");', function(err, rows, fields){
+    getUserID(userName, callback);
+  });
 };
 
 exports.getRoomMessages = function(roomName, callback){
-  dbConnection.connect();
-  exports.getRoomID(roomName, function(id){
-    dbConnection.query('SELECT message, createdAt, modifiedAt, username FROM messages INNER JOIN users ON users.id = messages.user_id WHERE room_id = "' + id + '";', function(err, rows, fields){
+  getRoomID(roomName, function(id){
+    dbConnection.query('SELECT content, created, username FROM messages INNER JOIN users ON users.id = messages.user_id WHERE room_id = "' + id + '";', function(err, rows, fields){
       callback(rows);
     });
   });
-  dbConnection.end();
 };
 
-exports.getUserID = function(userName){
-  dbConnection.connect();
-  dbConnection.query('SELECT id FROM users WHERE username = "' + userName + '";', function(err, rows, fields){
-    callback(rows[0].id);
-  });
-  dbConnection.end();
-};
-
-exports.putDataDB = function(data, roomName, callback) {
-  exports.getUserID(data.username, function(userID){
-    exports.getRoomID(roomName, function(roomID){
-      dbConnection.connect();
-      dbConnection.query('INSERT INTO messages (messages, user_id, room_id) VALUES (' + data.text + ',' + userID + ',' + roomID + ');', function(err, rows, fields){
+exports.putDataDB = function(roomName, userName, messageObj, callback) {
+  getUserID(userName, function(userID){
+    getRoomID(roomName, function(roomID){
+      console.log(roomName, userName, messageObj);
+      dbConnection.query('INSERT INTO messages (content, user_id, room_id) VALUES ("'+ messageObj.content + '",' + userID + ',' + roomID + ');', function(err, rows, fields){
         // check result and callback with true or false
         callback(true);
       });
-      dbConnection.end();
     });
   });
+};
+
+exports.openConnection = function(){
+  dbConnection.connect();
+};
+
+exports.closeConnection = function(){
+  dbConnection.end();
 };
