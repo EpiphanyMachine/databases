@@ -1,33 +1,45 @@
 var mysql = require('mysql');
-/* If the node mysql module is not found on your system, you may
- * need to do an "sudo npm install -g mysql". */
 
-/* You'll need to fill the following out with your mysql username and password.
- * database: "chat" specifies that we're using the database called
- * "chat", which we created by running schema.sql.*/
 var dbConnection = mysql.createConnection({
   user: "root",
-  password: "",
+  password: "plantlife",
   database: "chat"
+  // port: 3306,
+  // host: "127.0.0.1"
 });
 
-
-exports.checkRoom = function(room){
+exports.getRoomID = function(roomName){
   dbConnection.connect();
-  dbConnection.query('select * from messages;', exports.dbReturn);
-  console.log('checking room');
+  var id;
+  dbConnection.query('SELECT id FROM room WHERE name = "' + roomName + '";', function(err, rows, fields){
+    id = rows[0].id;
+  });
+  dbConnection.end();
+  return id;
+};
+
+exports.getRoomMessages = function(roomName){
+  var id = exports.getRoomID(roomName);
+  dbConnection.connect();
+  var messages;
+  dbConnection.query('SELECT message, createdAt, modifiedAt, username FROM messages INNER JOIN users ON users.id = messages.user_id WHERE room_id = "' + id + '";', function(err, rows, fields){
+    messages = rows;
+  });
+  dbConnection.end();
+  return messages;
+};
+
+exports.getUserID = function(userName){
+  dbConnection.connect();
+  var id = dbConnection.query('SELECT id FROM users WHERE username = ' + userName + ';');
+  dbConnection.end();
+  return id;
+};
+
+exports.putDataDB = function(data, roomName) {
+  var userID = exports.getUserID(data.username);
+  var roomID = exports.getRoomID(roomName);
+  dbConnection.connect();
+  dbConnection.query('INSERT INTO messages (messages, user_id, room_id) VALUES (' + data.text + ',' + userID + ',' + roomID + ');');
   dbConnection.end();
 };
-
-exports.dbReturn = function(err, rows, fields){
-  return {row: rows, fields: fields};
-};
-
-/* Now you can make queries to the Mysql database using the
- * dbConnection.query() method.
- * See https://github.com/felixge/node-mysql for more details about
- * using this module.*/
-
-/* You already know how to create an http server from the previous
- * assignment; you can re-use most of that code here. */
-
