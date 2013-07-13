@@ -51,10 +51,8 @@ exports.getRoomMessages = function(roomName, callback){
 exports.putDataDB = function(roomName, userName, messageObj, callback) {
   getUserID(userName, function(userID){
     getRoomID(roomName, function(roomID){
-      console.log(roomName, userName, messageObj);
       dbConnection.query('INSERT INTO messages (content, user_id, room_id) VALUES ("'+ messageObj.content + '",' + userID + ',' + roomID + ');', function(err, rows, fields){
-        // check result and callback with true or false
-        callback(true);
+        err ? callback(false) : callback(true);
       });
     });
   });
