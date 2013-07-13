@@ -20,7 +20,7 @@ var getRoomID = function(roomName, callback){
 
 var createNewRoom = function(roomName, callback){
   dbConnection.query('INSERT INTO rooms (name) VALUES ("'+ roomName +'");', function(err, rows, fields){
-    getRoomID(roomName, callback);
+    getRoomID(roomName, callback); //run getRoomID with original callback passed through
   });
 };
 
@@ -58,8 +58,9 @@ exports.putDataDB = function(roomName, userName, messageObj, callback) {
   });
 };
 
-exports.openConnection = function(){
+exports.openConnection = function(callback){
   dbConnection.connect();
+  callback();
 };
 
 exports.closeConnection = function(){
