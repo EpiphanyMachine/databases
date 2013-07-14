@@ -42,7 +42,8 @@ var createNewUser = function(userName, callback){
 
 exports.getRoomMessages = function(roomName, callback){
   getRoomID(roomName, function(id){
-    dbConnection.query('SELECT content, created, username FROM messages INNER JOIN users ON users.id = messages.user_id WHERE room_id = "' + id + '";', function(err, rows, fields){
+    // dbConnection.query('SELECT content, created, username FROM messages INNER JOIN users ON users.id = messages.user_id WHERE room_id = "' + id + '";', function(err, rows, fields){
+    dbConnection.query('SELECT m.content, m.created, u.username FROM messages m, users u WHERE m.user_id = u.id AND m.room_id = "' + id + '";', function(err, rows, fields){
       callback(rows);
     });
   });
